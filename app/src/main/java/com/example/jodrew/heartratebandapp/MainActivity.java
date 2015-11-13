@@ -176,6 +176,38 @@ public class MainActivity extends AppCompatActivity {
         return ConnectionState.CONNECTED == client.connect().await();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        txtStatus.setText("");
+    }
+    
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (client != null) {
+            try {
+                client.getSensorManager().unregisterHeartRateEventListener(mHeartRateEventListener);
+            } catch (BandIOException e) {
+                appendToUI(e.getMessage());
+            }
+        }
+    }
+    
+    @Override
+    protected void onDestroy() {
+        if (client != null) {
+            try {
+                client.disconnect().await();
+            } catch (InterruptedException e) {
+                // Do nothing as this is happening during destroy
+            } catch (BandException e) {
+                // Do nothing as this is happening during destroy
+            }
+        }
+        super.onDestroy();
+    }
+
     private void appendToUI(final String string) {
         this.runOnUiThread(new Runnable() {
             @Override
